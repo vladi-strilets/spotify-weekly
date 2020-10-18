@@ -1,6 +1,5 @@
 const express = require("express");
 const path = require("path");
-const dotenv = require("dotenv");
 
 // Middlewares
 const mongoSanitize = require("express-mongo-sanitize");
@@ -16,7 +15,10 @@ const users = require("./routes/users");
 const { updateListTask } = require("./tasks/updateList");
 
 // Load env vars
-dotenv.config({ path: "./config/config.env" });
+if (process.env.NODE_ENV !== "production") {
+	const dotenv = require("dotenv");
+	dotenv.config({ path: "./config/config.env" });
+}
 
 // Connect DB
 connectDB();

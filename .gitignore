@@ -28,3 +28,4 @@
 
 # env
 /config/config.env
+/client/.env

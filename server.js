@@ -47,9 +47,6 @@ if (process.env.NODE_ENV === "development") {
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, "client/build")));
-app.get("*", (req, res) => {
-	res.sendFile(path.join(__dirname + "client/build/index.html"));
-});
 
 // Mount routers
 app.use("/api/v1/users", users);
@@ -58,6 +55,10 @@ app.get("/api/v1", (req, res) => {
 	res.status(200).json({
 		message: "hello",
 	});
+});
+
+app.get("*", (req, res) => {
+	res.sendFile(path.join(__dirname + "client/build/index.html"));
 });
 
 const PORT = process.env.PORT || 5000;

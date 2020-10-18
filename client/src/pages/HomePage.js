@@ -58,11 +58,11 @@ const HomePage = ({}) => {
 			</Container>
 		);
 
-	console.log("data", data);
 	return (
 		<Container>
 			<Img src={SpotifyLogo} alt='Spotify logo' />
 			{data ? <p style={{ color: "white" }}>{data.data}</p> : <Login />}
+			{error && <p style={{ color: "white" }}>>{error}</p>}
 		</Container>
 	);
 };

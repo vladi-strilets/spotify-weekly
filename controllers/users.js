@@ -14,6 +14,9 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 		return next(new ErrorResponse(`code is required`, 400));
 	}
 
+	console.log("process.env.SPOTIFY_ID", process.env.SPOTIFY_ID);
+	console.log("process.env.SPOTIFY_SECRET", process.env.SPOTIFY_SECRET);
+
 	// get token
 	const requestBody = {
 		grant_type: "authorization_code",

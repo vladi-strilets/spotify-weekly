@@ -11,6 +11,10 @@
 		"start": "node server.js",
 		"heroku-postbuild": "cd client && yarn && yarn build"
 	},
+	"cacheDirectories": [
+		"node_modules",
+		"client/node_modules"
+	],
 	"dependencies": {
 		"axios": "^0.20.0",
 		"cors": "^2.8.5",

@@ -54,6 +54,12 @@ app.get("*", (req, res) => {
 // Mount routers
 app.use("/api/v1/users", users);
 
+app.get("/api/v1", (req, res) => {
+	res.status(200).json({
+		message: "hello",
+	});
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

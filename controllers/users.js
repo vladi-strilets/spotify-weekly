@@ -5,6 +5,7 @@ const queryString = require("query-string");
 const ErrorResponse = require("../utils/errorResponse");
 const useAsync = require("../utils/async");
 const moment = require("moment");
+const { REDIRECT_URI } = require("../utils/const");
 
 // @desc    Create a new user
 // @route   POST /api/v1/users/
@@ -14,14 +15,11 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 		return next(new ErrorResponse(`code is required`, 400));
 	}
 
-	console.log("process.env.SPOTIFY_ID", process.env.SPOTIFY_ID);
-	console.log("process.env.SPOTIFY_SECRET", process.env.SPOTIFY_SECRET);
-
 	// get token
 	const requestBody = {
 		grant_type: "authorization_code",
 		code: req.body.code,
-		redirect_uri: "http://localhost:5000/",
+		redirect_uri: REDIRECT_URI,
 		client_id: process.env.SPOTIFY_ID,
 		client_secret: process.env.SPOTIFY_SECRET,
 	};

@@ -1,7 +1,7 @@
 export const authEndpoint = "https://accounts.spotify.com/authorize";
 const redirectUri =
 	!process.env.NODE_ENV || process.env.NODE_ENV === "development"
-		? "http://localhost:5000/"
+		? "http://localhost:3000/"
 		: "https://spotify-weekly.herokuapp.com/";
 
 const clientId = "eabb884d255d413b84aa357232bf1a08";

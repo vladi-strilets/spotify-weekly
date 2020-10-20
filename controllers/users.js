@@ -24,31 +24,35 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 		client_secret: process.env.SPOTIFY_SECRET,
 	};
 
-	try {
-		const token = await axios({
+	const [token, tokenError] = await useAsync(
+		axios({
 			method: "POST",
 			url: "https://accounts.spotify.com/api/token",
 			data: queryString.stringify(requestBody),
 			headers: {
 				"Content-Type": "application/x-www-form-urlencoded",
 			},
-		});
-	} catch (err) {
+		})
+	);
+
+	if (tokenError) {
 		return next(new ErrorResponse(`Get token error`, 400));
 	}
 
 	const access_token = token.data.access_token;
 
 	// get spotify user
-	try {
-		const spotifyUser = await axios({
+	const [spotifyUser, spotifyUserError] = await useAsync(
+		axios({
 			method: "GET",
 			url: "https://api.spotify.com/v1/me",
 			headers: {
 				Authorization: `Bearer ${access_token}`,
 			},
-		});
-	} catch (err) {
+		})
+	);
+
+	if (spotifyUserError) {
 		return next(new ErrorResponse(`Spotify user error`, 400));
 	}
 
@@ -57,7 +61,7 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 	user = await User.find({ spotifyId: spotifyUser.data.id });
 	if (user && user.length) {
 		// USER EXISTS
-		// upadte the list if needed
+		// update the list if needed
 		if (
 			!(
 				moment(user.lastUpdate).week() === moment().week() &&
@@ -65,25 +69,25 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 			)
 		) {
 			// get the list of tracks from Discover Weekly
-			try {
-				const discoverWeeklyInfo = await axios({
+			const [discoverWeeklyInfo, discoverWeeklyInfoError] = await useAsync(
+				axios({
 					method: "GET",
 					url: `https://api.spotify.com/v1/playlists/${user.discoverWeeklyPlaylistId}`,
 					headers: {
 						Authorization: `Bearer ${access_token}`,
 					},
-				});
-			} catch (err) {
+				})
+			);
+			if (discoverWeeklyInfoError) {
 				return next(new ErrorResponse(`Discover Weekly Info error`, 400));
 			}
-
 			const trackUris = discoverWeeklyDetails.data.tracks.items.map(
 				(track) => track.track.uri
 			);
 
 			// add tracks to Spotify Weekly
-			try {
-				const addTracks = await axios({
+			const [addTracks, addTracksError] = await useAsync(
+				axios({
 					method: "POST",
 					url: `https://api.spotify.com/v1/playlists/${user.spotifyWeeklyPlaylistId}/tracks`,
 					data: { uris: trackUris },
@@ -91,15 +95,17 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 						Authorization: `Bearer ${access_token}`,
 						"Content-Type": "application/json",
 					},
-				});
-			} catch (err) {
+				})
+			);
+
+			if (addTracksError) {
 				return next(
 					new ErrorResponse(`Error on add tracks to Spotify Weekly`, 400)
 				);
 			}
 
 			// update the lastUpdate
-			await User.findByIdAndUpdate(user._id, { lastSave: Date.now() });
+			await User.findByIdAndUpdate(user._id, { lastUpdate: Date.now() });
 		}
 
 		// update hasAccess to true
@@ -121,27 +127,17 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 	user = await User.create(userData);
 
 	// find the "Discover weekly playlist"
-	try {
-		let playlists = await axios({
-			method: "GET",
-			url: "https://api.spotify.com/v1/me/playlists",
-			headers: {
-				Authorization: `Bearer ${access_token}`,
-			},
-			params: {
-				offset: 0,
-				limit: 50,
-			},
-		});
-	} catch (err) {
-		return next(
-			new ErrorResponse(
-				`Error white looking for the "Discover Weekly playlist"`,
-				400
-			)
-		);
-	}
-
+	let playlists = await axios({
+		method: "GET",
+		url: "https://api.spotify.com/v1/me/playlists",
+		headers: {
+			Authorization: `Bearer ${access_token}`,
+		},
+		params: {
+			offset: 0,
+			limit: 50,
+		},
+	});
 	let discoverWeekly = playlists.data.items.find(
 		(playlist) =>
 			playlist.name === "Discover Weekly" &&
@@ -150,23 +146,13 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 
 	// repeat until find Discover Weekly or the end of the playlists list
 	while (!discoverWeekly || !!playlists.data.next) {
-		try {
-			playlists = await axios({
-				method: "GET",
-				url: playlists.data.next,
-				headers: {
-					Authorization: `Bearer ${access_token}`,
-				},
-			});
-		} catch (err) {
-			return next(
-				new ErrorResponse(
-					`Error white looking for the "Discover Weekly playlist"`,
-					400
-				)
-			);
-		}
-
+		playlists = await axios({
+			method: "GET",
+			url: playlists.data.next,
+			headers: {
+				Authorization: `Bearer ${access_token}`,
+			},
+		});
 		discoverWeekly = playlists.data.items.find(
 			(playlist) =>
 				playlist.name === "Discover Weekly" &&
@@ -180,15 +166,17 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 	}
 
 	// get the list of tracks from Discover Weekly
-	try {
-		const discoverWeeklyInfo = await axios({
+	const [discoverWeeklyInfo, discoverWeeklyInfoError] = await useAsync(
+		axios({
 			method: "GET",
 			url: `https://api.spotify.com/v1/playlists/${discoverWeekly.id}`,
 			headers: {
 				Authorization: `Bearer ${access_token}`,
 			},
-		});
-	} catch (err) {
+		})
+	);
+
+	if (discoverWeeklyInfoError) {
 		return next(new ErrorResponse(`Discover Weekly Info error`, 400));
 	}
 
@@ -197,8 +185,8 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 	);
 
 	// create a new Playlist
-	try {
-		const spotifyWeeklyPlaylist = await axios({
+	const [spotifyWeeklyPlaylist, spotifyWeeklyPlaylistError] = await useAsync(
+		axios({
 			method: "POST",
 			url: `https://api.spotify.com/v1/users/${spotifyUser.data.id}/playlists`,
 			data: {
@@ -209,14 +197,16 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 			headers: {
 				Authorization: `Bearer ${access_token}`,
 			},
-		});
-	} catch (err) {
+		})
+	);
+
+	if (spotifyWeeklyPlaylistError) {
 		return next(new ErrorResponse(`Error on create a new playlist`, 400));
 	}
 
 	// put the tracks from Discover Weekly to a new create Sporify Weekly playlist
-	try {
-		const addTracks = await axios({
+	const [addTracks, addTracksError] = await useAsync(
+		axios({
 			method: "POST",
 			url: `https://api.spotify.com/v1/playlists/${spotifyWeeklyPlaylist.data.id}/tracks`,
 			data: {
@@ -226,8 +216,10 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 				Authorization: `Bearer ${access_token}`,
 				"Content-Type": "application/json",
 			},
-		});
-	} catch (err) {
+		})
+	);
+
+	if (addTracksError) {
 		return next(
 			new ErrorResponse(`Error on add tracks to Spotify Weekly`, 400)
 		);
@@ -235,7 +227,7 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 
 	// update a user with a new info
 	const toUpdate = {
-		lastSave: Date.now(),
+		lastUpdate: Date.now(),
 		discoverWeeklyPlaylistId: discoverWeekly.id,
 		spotifyWeeklyPlaylistId: spotifyWeeklyPlaylist.data.id,
 	};
@@ -245,6 +237,6 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 	return res.status(201).json({
 		success: true,
 		data:
-			"Setup is done, you will get your Spotify Weekly updates every monday at 9:00 PM UTC (GTM+0)",
+			"Setup is done, you will get your Spotify Weekly updates on every Monday at 9:00 PM UTC (GTM+0), check your Spotify Weekly playlist!",
 	});
 });

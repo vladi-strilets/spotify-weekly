@@ -2,6 +2,7 @@ const { default: axios } = require("axios");
 const User = require("../models/User");
 const moment = require("moment");
 const queryString = require("query-string");
+const useAsync = require("../utils/async");
 
 const updateList = async () => {
 	console.log("Running a task");
@@ -29,8 +30,8 @@ const updateList = async () => {
 		}
 
 		// get the access token
-		try {
-			const token = await axios({
+		const [token, tokenError] = await useAsync(
+			axios({
 				method: "POST",
 				url: "https://accounts.spotify.com/api/token",
 				data: queryString.stringify({
@@ -39,8 +40,9 @@ const updateList = async () => {
 					client_secret: process.env.SPOTIFY_SECRET,
 					refresh_token: user.refreshToken,
 				}),
-			});
-		} catch (err) {
+			})
+		);
+		if (tokenError) {
 			console.error(err.message);
 			// if there is an error that means the access has been removed
 			await User.findByIdAndUpdate(user._id, { hasAccess: false });
@@ -50,15 +52,17 @@ const updateList = async () => {
 		const access_token = token.data.access_token;
 
 		// get the list of tracks from Discover Weekly
-		try {
-			const discoverWeeklyInfo = await axios({
+		const [discoverWeeklyInfo, discoverWeeklyInfoError] = await useAsync(
+			axios({
 				method: "GET",
 				url: `https://api.spotify.com/v1/playlists/${user.discoverWeeklyPlaylistId}`,
 				headers: {
 					Authorization: `Bearer ${access_token}`,
 				},
-			});
-		} catch (err) {
+			})
+		);
+
+		if (discoverWeeklyInfoError) {
 			console.error(err.message);
 			return;
 		}
@@ -68,8 +72,8 @@ const updateList = async () => {
 		);
 
 		// add tracks to Spotify Weekly
-		try {
-			const addTracks = await axios({
+		const [addTracks, addTracksError] = await useAsync(
+			axios({
 				method: "POST",
 				url: `https://api.spotify.com/v1/playlists/${user.spotifyWeeklyPlaylistId}/tracks`,
 				data: { uris: trackUris },
@@ -77,13 +81,16 @@ const updateList = async () => {
 					Authorization: `Bearer ${access_token}`,
 					"Content-Type": "application/json",
 				},
-			});
-		} catch (err) {
+			})
+		);
+
+		if (addTracksError) {
 			console.error(err.message);
 			return;
 		}
+
 		// update the lastUpdate
-		await User.findByIdAndUpdate(user._id, { lastSave: Date.now() });
+		await User.findByIdAndUpdate(user._id, { lastUpdate: Date.now() });
 	});
 };
 

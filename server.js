@@ -12,7 +12,7 @@ const connectDB = require("./config/db");
 // routes
 const users = require("./routes/users");
 // tasks
-const { updateListTask } = require("./tasks/updateList");
+// const { updateListTask } = require("./tasks/updateList");
 
 // Load env vars
 if (process.env.NODE_ENV !== "production") {
@@ -65,6 +65,6 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
 	// run the tasks
-	updateListTask();
+	// updateListTask();
 	console.log(`Express app listening on ${PORT}`);
 });

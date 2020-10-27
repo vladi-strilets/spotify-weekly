@@ -211,6 +211,7 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 			url: `https://api.spotify.com/v1/playlists/${spotifyWeeklyPlaylist.data.id}/tracks`,
 			data: {
 				uris: trackUris,
+				position: 0,
 			},
 			headers: {
 				Authorization: `Bearer ${access_token}`,

@@ -3,7 +3,7 @@ const asyncHandler = require("../middlewares/async");
 const axios = require("axios");
 const queryString = require("query-string");
 const ErrorResponse = require("../utils/errorResponse");
-const useAsync = require("../utils/async");
+const { useAsync } = require("../utils/async");
 const moment = require("moment");
 const { REDIRECT_URI } = require("../utils/const");
 
@@ -58,8 +58,8 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 
 	// check if user already exists
 	let user;
-	user = await User.find({ spotifyId: spotifyUser.data.id });
-	if (user && user.length) {
+	user = await User.findOne({ spotifyId: spotifyUser.data.id });
+	if (user) {
 		// USER EXISTS
 		// update the list if needed
 		if (
@@ -81,7 +81,7 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 			if (discoverWeeklyInfoError) {
 				return next(new ErrorResponse(`Discover Weekly Info error`, 400));
 			}
-			const trackUris = discoverWeeklyDetails.data.tracks.items.map(
+			const trackUris = discoverWeeklyInfo.data.tracks.items.map(
 				(track) => track.track.uri
 			);
 

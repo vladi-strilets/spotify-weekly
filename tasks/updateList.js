@@ -2,13 +2,14 @@ const { default: axios } = require("axios");
 const User = require("../models/User");
 const moment = require("moment");
 const queryString = require("query-string");
-const useAsync = require("../utils/async");
+const { useAsync, asyncForEach } = require("../utils/async");
+const mongoose = require("mongoose");
 
 const updateList = async () => {
-	console.log("Running a task");
+	console.log("Running the task");
 
 	// as we use Free Heroku Scheduler, we need to specify to run this code only on Mondays
-	if (moment().day() !== 1) {
+	if (moment().day() !== 2) {
 		console.log("Sorry, but not today");
 		return;
 	}
@@ -17,15 +18,19 @@ const updateList = async () => {
 	const users = await User.find({ hasAccess: true });
 
 	// if there is no users just return
-	if (!users.length) return;
+	if (!users.length) {
+		console.log("There is no users");
+		return;
+	}
 
 	// update spotify weekly playlist
-	users.forEach(async (user) => {
+	await asyncForEach(users, async (user) => {
 		// check if the last update week and year is the current week, then do nothing
 		if (
 			moment(user.lastUpdate).week() === moment().week() &&
 			moment(user.lastUpdate).year() === moment().year()
 		) {
+			console.log(`The last update was this week for the user ${user._id}`);
 			return;
 		}
 
@@ -67,7 +72,7 @@ const updateList = async () => {
 			return;
 		}
 
-		const trackUris = discoverWeeklyDetails.data.tracks.items.map(
+		const trackUris = discoverWeeklyInfo.data.tracks.items.map(
 			(track) => track.track.uri
 		);
 
@@ -92,6 +97,8 @@ const updateList = async () => {
 		// update the lastUpdate
 		await User.findByIdAndUpdate(user._id, { lastUpdate: Date.now() });
 	});
+
+	console.log("The task is done");
 };
 
 module.exports = updateList;

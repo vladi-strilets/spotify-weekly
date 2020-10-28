@@ -9,7 +9,7 @@ const updateList = async () => {
 	console.log("Running the task");
 
 	// as we use Free Heroku Scheduler, we need to specify to run this code only on Mondays
-	if (moment().day() !== 2) {
+	if (moment().day() !== 1) {
 		console.log("Sorry, but not today");
 		return;
 	}

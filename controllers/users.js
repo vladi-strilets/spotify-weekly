@@ -238,7 +238,7 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 	return res.status(201).json({
 		success: true,
 		data:
-			"Setup is done, you will get your Spotify Weekly updates on every Monday at 9:00 PM UTC (GTM+0), check your Spotify Weekly playlist!",
+			"Setup is done. You will get your Spotify Weekly updates every Monday at 9:00 PM UTC (GTM+0). Check your Spotify Weekly playlist!",
 	});
 });
 

@@ -174,7 +174,7 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 				Authorization: `Bearer ${access_token}`,
 			},
 		});
-		discoverWeekly = playlists.playlists.items.find(
+		discoverWeekly = playlists.data.playlists.items.find(
 			(playlist) =>
 				playlist.name === "Discover Weekly" &&
 				playlist.owner.uri === "spotify:user:spotify"

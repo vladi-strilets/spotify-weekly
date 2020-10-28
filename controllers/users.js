@@ -145,7 +145,7 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 	);
 
 	// repeat until find Discover Weekly or the end of the playlists list
-	while (!discoverWeekly || !!playlists.data.next) {
+	while (!discoverWeekly && !!playlists.data.next) {
 		playlists = await axios({
 			method: "GET",
 			url: playlists.data.next,

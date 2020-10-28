@@ -11,7 +11,6 @@ export const useFetch = () => {
 		setIsLoading(true);
 		try {
 			const response = await axios(axiosParams);
-			console.log("response", response);
 			setData(response.data);
 		} catch (err) {
 			console.error(err.message);

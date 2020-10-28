@@ -23,3 +23,13 @@ body,
 html {
 	line-height: 1.25;
 }
+
+/* #root {
+	display: flex;
+} */
+
+p {
+	font-size: 16px;
+	color: white;
+	line-height: 1.5;
+}

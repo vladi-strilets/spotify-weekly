@@ -119,6 +119,13 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 		});
 	}
 
+	// create a new user
+	const userData = {
+		spotifyId: spotifyUser.data.id,
+		refreshToken: token.data.refresh_token,
+	};
+	user = await User.create(userData);
+
 	// find the "Discover weekly playlist"
 	let playlists = await axios({
 		method: "GET",
@@ -245,15 +252,14 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 		);
 	}
 
-	// create a new user
-	const userData = {
-		spotifyId: spotifyUser.data.id,
-		refreshToken: token.data.refresh_token,
+	// update a user with a new info
+	const toUpdate = {
 		lastUpdate: Date.now(),
 		discoverWeeklyPlaylistId: discoverWeekly.id,
 		spotifyWeeklyPlaylistId: spotifyWeeklyPlaylist.data.id,
 	};
-	await User.create(userData);
+
+	await User.findByIdAndUpdate(user._id, toUpdate);
 
 	return res.status(201).json({
 		success: true,

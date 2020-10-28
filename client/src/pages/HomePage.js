@@ -146,11 +146,16 @@ const HomePage = ({}) => {
 					{error && <p style={{ color: "red" }}>>{error}</p>}
 
 					<div style={{ marginTop: 16, paddingBottom: 16 }}>
-						<img
-							src={GithubIcon}
-							alt='Link to code on github'
-							style={{ width: 34 }}
-						/>
+						<a
+							href='https://github.com/vladi-strilets/spotify-weekly'
+							target='_blank'
+						>
+							<img
+								src={GithubIcon}
+								alt='Link to code on github'
+								style={{ width: 34 }}
+							/>
+						</a>
 					</div>
 				</Section>
 			</div>

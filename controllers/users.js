@@ -241,3 +241,12 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 			"Setup is done, you will get your Spotify Weekly updates on every Monday at 9:00 PM UTC (GTM+0), check your Spotify Weekly playlist!",
 	});
 });
+
+exports.usersCount = asyncHandler(async (req, res, next) => {
+	const usersCount = await User.countDocuments({});
+
+	return res.status(200).json({
+		success: true,
+		data: usersCount,
+	});
+});

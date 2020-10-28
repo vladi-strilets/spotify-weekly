@@ -119,13 +119,6 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 		});
 	}
 
-	// create a new user
-	const userData = {
-		spotifyId: spotifyUser.data.id,
-		refreshToken: token.data.refresh_token,
-	};
-	user = await User.create(userData);
-
 	// find the "Discover weekly playlist"
 	let playlists = await axios({
 		method: "GET",
@@ -160,9 +153,35 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 		);
 	}
 
-	// if there is no Discover Weekly
+	// if there ir no Discover Weekly playlist, then we could find it from Search endpoint
 	if (!discoverWeekly) {
-		return next(new ErrorResponse(`Discover Weekly playlist not found`, 404));
+		// it should be the first one
+		playlists = await axios({
+			method: "GET",
+			url: "https://api.spotify.com/v1/search",
+			params: {
+				q: "Discover Weekly",
+				type: "playlist",
+			},
+			headers: {
+				Authorization: `Bearer ${access_token}`,
+			},
+		});
+		discoverWeekly = playlists.data.items.find(
+			(playlist) =>
+				playlist.name === "Discover Weekly" &&
+				playlist.owner.uri === "spotify:user:spotify"
+		);
+	}
+
+	if (!discoverWeekly) {
+		// if there is no Discover Weekly
+		return next(
+			new ErrorResponse(
+				`Discover Weekly playlist not found, please follow it on your Spotify and try again`,
+				404
+			)
+		);
 	}
 
 	// get the list of tracks from Discover Weekly
@@ -226,14 +245,15 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 		);
 	}
 
-	// update a user with a new info
-	const toUpdate = {
+	// create a new user
+	const userData = {
+		spotifyId: spotifyUser.data.id,
+		refreshToken: token.data.refresh_token,
 		lastUpdate: Date.now(),
 		discoverWeeklyPlaylistId: discoverWeekly.id,
 		spotifyWeeklyPlaylistId: spotifyWeeklyPlaylist.data.id,
 	};
-
-	await User.findByIdAndUpdate(user._id, toUpdate);
+	await User.create(userData);
 
 	return res.status(201).json({
 		success: true,

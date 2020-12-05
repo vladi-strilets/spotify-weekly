@@ -4,10 +4,12 @@ import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import GithubIcon from "../assets/icons/github.png";
 import SpotifyLogo from "../assets/logos/SpotifyLogo.png";
+import Confetti from "../components/Confetti";
 import Loader from "../components/Loader";
 import { API_URL } from "../utils/const";
 import { useFetch } from "../utils/hooks";
 import { loginUrl } from "../utils/spotify";
+import { colors } from "../utils/styles";
 
 const Container = styled.div`
 	display: flex;
@@ -50,6 +52,13 @@ const LoginButton = styled.a`
 	text-decoration: none;
 `;
 
+const Message = styled.div`
+	padding: 0 16px;
+	background: #222222;
+	border: 2px solid ${colors.SPOTIFY_GREEN};
+	border-radius: 6px;
+`;
+
 const HomePage = ({}) => {
 	const history = useHistory();
 
@@ -90,8 +99,6 @@ const HomePage = ({}) => {
 			};
 			setAxiosParams(axiosParams);
 		}
-
-		// make the request to server
 	}, []);
 
 	if (isLoading)
@@ -117,8 +124,10 @@ const HomePage = ({}) => {
 					<div style={{ paddingTop: 16 }}>
 						<Img src={SpotifyLogo} alt='Spotify logo' />
 						<p style={{ fontSize: 24, fontWeight: 500 }}>
-							<span style={{ color: "#1db954" }}>Spotify Weekly:</span> autosave
-							your Discover Weekly
+							<span style={{ color: colors.SPOTIFY_GREEN }}>
+								Spotify Weekly:
+							</span>{" "}
+							autosave your Discover Weekly
 						</p>
 					</div>
 					<div>
@@ -132,7 +141,7 @@ const HomePage = ({}) => {
 					<div>
 						<p style={{ fontWeight: 500 }}>
 							Used by{" "}
-							<span style={{ color: "#1db954" }}>
+							<span style={{ color: colors.SPOTIFY_GREEN }}>
 								{usersCount ? usersCount.data : "_"}
 							</span>{" "}
 							users
@@ -142,8 +151,16 @@ const HomePage = ({}) => {
 					{!data && (
 						<LoginButton href={loginUrl}>LOGIN WITH SPOTIFY</LoginButton>
 					)}
-					{data && <p>{data.data}</p>}
-					{error && <p style={{ color: "red" }}>>{error}</p>}
+					{data && (
+						<Message>
+							<p style={{ fontWeight: 500 }}>{data.data}</p>
+						</Message>
+					)}
+					{error && (
+						<Message>
+							<p style={{ color: "red" }}>>{error}</p>
+						</Message>
+					)}
 
 					<div style={{ marginTop: 16, paddingBottom: 16 }}>
 						<div>
@@ -161,7 +178,7 @@ const HomePage = ({}) => {
 						<p>
 							Created by Vladimir Strilets:{" "}
 							<a
-								style={{ color: "#1db954", textDecoration: "none" }}
+								style={{ color: colors.SPOTIFY_GREEN, textDecoration: "none" }}
 								href='mailto:vladi@strilets.dev'
 							>
 								vladi@strilets.dev
@@ -170,6 +187,8 @@ const HomePage = ({}) => {
 					</div>
 				</Section>
 			</div>
+
+			{data && <Confetti />}
 		</Container>
 	);
 };

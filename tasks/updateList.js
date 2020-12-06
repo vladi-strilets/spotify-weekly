@@ -6,11 +6,11 @@ const { useAsync, asyncForEach } = require("../utils/async");
 const mongoose = require("mongoose");
 
 const updateList = async () => {
-	console.log("Running the task");
+	console.log("Running the task.");
 
 	// as we use Free Heroku Scheduler, we need to specify to run this code only on Mondays
 	if (moment().day() !== 1) {
-		console.log("Sorry, but not today");
+		console.log("Sorry, but not today.");
 		return;
 	}
 
@@ -19,7 +19,7 @@ const updateList = async () => {
 
 	// if there is no users just return
 	if (!users.length) {
-		console.log("There is no users");
+		console.log("There are no users.");
 		return;
 	}
 
@@ -30,7 +30,7 @@ const updateList = async () => {
 			moment(user.lastUpdate).week() === moment().week() &&
 			moment(user.lastUpdate).year() === moment().year()
 		) {
-			console.log(`The last update was this week for the user ${user._id}`);
+			console.log(`The last update was this week for the user ${user._id}.`);
 			return;
 		}
 
@@ -98,7 +98,7 @@ const updateList = async () => {
 		await User.findByIdAndUpdate(user._id, { lastUpdate: Date.now() });
 	});
 
-	console.log("The task is done");
+	console.log("The task is done.");
 };
 
 module.exports = updateList;

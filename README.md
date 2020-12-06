@@ -3,7 +3,7 @@ This project was bootstrapped with
 
 ## Spotify-weekly
 
-Automatic save your "Discover Weekly" songs from Spotify into a private playlist
+Automatically save your "Discover Weekly" songs from Spotify into a private playlist
 called "Spotify Weekly" every Monday at 9:00 PM UTC (GMT +0).
 
-[https://spotify-weekly.herokuapp.com/](https://spotify-weekly.herokuapp.com/). 
+[https://spotify-weekly.herokuapp.com/](https://spotify-weekly.herokuapp.com/).

@@ -90,7 +90,7 @@ exports.createUser = asyncHandler(async (req, res, next) => {
 				axios({
 					method: "POST",
 					url: `https://api.spotify.com/v1/playlists/${user.spotifyWeeklyPlaylistId}/tracks`,
-					data: { uris: trackUris },
+					data: { uris: trackUris, position: 0 },
 					headers: {
 						Authorization: `Bearer ${access_token}`,
 						"Content-Type": "application/json",

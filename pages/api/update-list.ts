@@ -1,8 +1,14 @@
-import axios from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import { NextApiRequest, NextApiResponse } from "next";
 import { WEEK_IN_MILLISECONDS } from "../../lib/const";
 import prisma from "../../lib/prisma";
 import queryString from "query-string";
+
+type SettledResult = {
+  status: "rejected" | "fulfilled";
+  value?: AxiosResponse;
+  reason?: AxiosError;
+};
 
 const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   if (req.method !== "POST") {
@@ -59,7 +65,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   );
 
   const getAccessTokenResultsWithUsers = getAccessTokenResults.map(
-    (result, index) => ({
+    (result: SettledResult, index) => ({
       status: result.status,
       value: result.value?.data,
       reason: result.reason,
@@ -125,14 +131,16 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const getTracksResults = await Promise.allSettled(getTracksPromises);
 
-  const getTracksResultsWithUsers = getTracksResults.map((result, index) => ({
-    status: result.status,
-    value: result.value?.data,
-    reason: result.reason,
-    user: fulfilledGetAccessTokenResultsWithUsers[index].user,
-    accessToken:
-      fulfilledGetAccessTokenResultsWithUsers[index].value.access_token,
-  }));
+  const getTracksResultsWithUsers = getTracksResults.map(
+    (result: SettledResult, index) => ({
+      status: result.status,
+      value: result.value?.data,
+      reason: result.reason,
+      user: fulfilledGetAccessTokenResultsWithUsers[index].user,
+      accessToken:
+        fulfilledGetAccessTokenResultsWithUsers[index].value.access_token,
+    })
+  );
 
   const failedGetTracksResultsWithUsers = getTracksResultsWithUsers.filter(
     (result) => result.status === "rejected"
@@ -148,6 +156,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // remove users who doesn't have discover weekly playlist anymore
   const removeDiscoverWeeklyPlaylistUserIds = failedGetTracksResultsWithUsers
     .filter(
+      // @ts-ignore
       (result) => result.reason?.response?.data?.error?.message === "Not found."
     )
     .map((result) => result.user.id);
@@ -198,12 +207,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
 
   const addTracksResults = await Promise.allSettled(addTracksPromises);
 
-  const addTracksResultsWithUsers = addTracksResults.map((result, index) => ({
-    status: result.status,
-    value: result.value?.data,
-    reason: result.reason,
-    user: fulfilledGetTracksResultsWithUsers[index].user,
-  }));
+  const addTracksResultsWithUsers = addTracksResults.map(
+    (result: SettledResult, index) => ({
+      status: result.status,
+      value: result.value?.data,
+      reason: result.reason,
+      user: fulfilledGetTracksResultsWithUsers[index].user,
+    })
+  );
 
   const failedAddTracksResultsWithUsers = addTracksResultsWithUsers.filter(
     (result) => result.status === "rejected"
@@ -219,6 +230,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   // remove users who doesn't have spotify weekly playlist anymore
   const removeSpotifyWeeklyPlaylistUserIds = failedAddTracksResultsWithUsers
     .filter(
+      // @ts-ignore
       (result) => result.reason?.response?.data?.error?.message === "Not found."
     )
     .map((result) => result.user.id);

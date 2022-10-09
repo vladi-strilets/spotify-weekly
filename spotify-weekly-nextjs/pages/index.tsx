@@ -13,7 +13,10 @@ type HomeProps = {
   host: string;
 };
 
-const createUserFetcher = async (url: string, { arg }) => {
+const createUserFetcher = async (
+  url: string,
+  { arg }: { arg: { code: string } }
+) => {
   return axios(url, {
     method: "POST",
     data: {
@@ -44,14 +47,12 @@ const Home: NextPage<HomeProps> = (props) => {
   return (
     <div>
       <Head>
-        <title>Spotify Weekly</title>
-        <meta
-          name="description"
-          content="Save you spotify weekly playlist every week"
-        />
-        <link rel="icon" href="/favicon.ico" />
+        <title>Spotify Weekly: autosave your Discover Weekly</title>
       </Head>
 
+      <header>
+        <h1>Spotify Weekly: autosave your Discover Weekly playlist</h1>
+      </header>
       <main>
         <p>total count: {totalCount}</p>
         <a href={loginUrl}>CONNECT SPOTIFY</a>

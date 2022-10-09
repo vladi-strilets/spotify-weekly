@@ -4,6 +4,7 @@ import type { NextApiRequest, NextApiResponse } from "next";
 import absoluteUrl from "next-absolute-url";
 import prisma from "../../lib/prisma";
 import { differenceInSeconds } from "date-fns";
+import { WEEK_IN_SECONDS } from "../../lib/const";
 
 type Data =
   | {
@@ -41,8 +42,6 @@ const respondError = (
 ) => {
   res.status(status).json({ error: message });
 };
-
-const WEEK_IN_SECONDS = 60 * 60 * 24 * 7;
 
 const getSpotifyToken = async (
   code: string,
@@ -250,186 +249,183 @@ const createSpotifyWeeklyPlaylist = async (
 };
 
 const handler = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
-  if (req.method === "POST") {
-    const { code } = req.body;
+  if (req.method !== "POST") {
+    res.setHeader("Allow", "POST");
+    res.status(405).end("Method Not Allowed");
+    return;
+  }
 
-    // check for the code in the request body
-    if (code == null) {
-      return respondError(400, "Missing code", res);
-    }
+  const { code } = req.body;
 
-    // get token from spotify
-    const token = await getSpotifyToken(code, req, res);
-    if (token === null) return;
+  // check for the code in the request body
+  if (code == null) {
+    return respondError(400, "Missing code", res);
+  }
 
-    const accessToken = token.access_token;
+  // get token from spotify
+  const token = await getSpotifyToken(code, req, res);
+  if (token === null) return;
 
-    // get spotify user data
-    const spotifyUser = await getSpotifyUser(accessToken, res);
-    if (spotifyUser === null) return;
+  const accessToken = token.access_token;
 
-    // check if user already exists
-    let user;
-    try {
-      user = await prisma.users.findFirst({
-        where: {
-          spotifyId: spotifyUser.id,
-        },
-      });
-    } catch (error) {
-      return respondError(400, "Error finding user", res);
-    }
+  // get spotify user data
+  const spotifyUser = await getSpotifyUser(accessToken, res);
+  if (spotifyUser === null) return;
 
-    // if user exists
-    if (user) {
-      // update the playlist if needed
-      if (
-        user.lastUpdate == null ||
-        differenceInSeconds(new Date(), user.lastUpdate) > WEEK_IN_SECONDS
-      ) {
-        // get the list of tracks from Discover Weekly
-        const tracksUris = await getListOfTracks(
-          user.discoverWeeklyPlaylistId!,
-          accessToken,
-          res
-        );
-        if (tracksUris === null) return;
+  // check if user already exists
+  let user;
+  try {
+    user = await prisma.users.findFirst({
+      where: {
+        spotifyId: spotifyUser.id,
+      },
+    });
+  } catch (error) {
+    return respondError(400, "Error finding user", res);
+  }
 
-        // add tracks to the playlist
-        const result = await addTracksToThePlaylist(
-          user.spotifyWeeklyPlaylistId!,
-          tracksUris,
-          accessToken,
-          res
-        );
-        if (result === null) return;
+  // if user exists
+  if (user) {
+    // update the playlist if needed
+    if (
+      user.lastUpdate == null ||
+      differenceInSeconds(new Date(), user.lastUpdate) > WEEK_IN_SECONDS
+    ) {
+      // get the list of tracks from Discover Weekly
+      const tracksUris = await getListOfTracks(
+        user.discoverWeeklyPlaylistId!,
+        accessToken,
+        res
+      );
+      if (tracksUris === null) return;
 
-        // update the last update date
-        try {
-          await prisma.users.update({
-            where: {
-              id: user.id,
-            },
-            data: {
-              lastUpdate: new Date(),
-            },
-          });
-        } catch (err) {
-          return respondError(400, "Error updating last update date", res);
-        }
-      }
+      // add tracks to the playlist
+      const result = await addTracksToThePlaylist(
+        user.spotifyWeeklyPlaylistId!,
+        tracksUris,
+        accessToken,
+        res
+      );
+      if (result === null) return;
 
-      // in case the user has returned, let's update the hasAccess flag
+      // update the last update date
       try {
         await prisma.users.update({
           where: {
             id: user.id,
           },
           data: {
-            hasAccess: true,
+            lastUpdate: new Date(),
           },
         });
       } catch (err) {
-        return respondError(400, "Error updating hasAccess flag", res);
+        return respondError(400, "Error updating last update date", res);
       }
-
-      return res.status(200).json({
-        message: `Welcome back, ${spotifyUser.display_name}!`,
-        spotifyWeeklyPlaylistId: user.spotifyWeeklyPlaylistId!,
-      });
     }
 
-    // new user
-
-    // find the "discover weekly" playlist
-    let findResults = await findDiscoveryWeeklyPlaylist(
-      "https://api.spotify.com/v1/me/playlists",
-      {
-        offset: 0,
-        limit: 50,
-      },
-      accessToken,
-      res
-    );
-    if (findResults === null) return;
-    let { discoverWeekly, next } = findResults;
-
-    // repeat until find Discover Weekly or the end of the playlists list
-    while (discoverWeekly === undefined || next != null) {
-      findResults = await findDiscoveryWeeklyPlaylist(
-        next,
-        {},
-        accessToken,
-        res
-      );
-      if (findResults === null) return;
-      discoverWeekly = findResults.discoverWeekly;
-      next = findResults.next;
-    }
-
-    // if there ir no Discover Weekly playlist, then we could find it from Search endpoint
-    if (discoverWeekly === undefined) {
-      discoverWeekly = await findDiscoveryWeeklyPlaylistFromSearch(
-        accessToken,
-        res
-      );
-      if (discoverWeekly === null) return;
-    }
-
-    // can't find Discover Weekly playlist
-    if (discoverWeekly === undefined) {
-      return respondError(400, "Can't find Discover Weekly playlist", res);
-    }
-
-    // get the list of tracks from Discover Weekly
-    const tracksUris = await getListOfTracksFromDiscoverWeekly(
-      discoverWeekly.id,
-      accessToken,
-      res
-    );
-    if (tracksUris === null) return;
-
-    // create Spotify Weekly playlist
-    const spotifyWeeklyPlaylist = await createSpotifyWeeklyPlaylist(
-      spotifyUser.id,
-      accessToken,
-      res
-    );
-    if (spotifyWeeklyPlaylist === null) return;
-
-    // put the tracks from Discover Weekly to a new create Sporify Weekly playlist
-    const result = await addTracksToThePlaylist(
-      spotifyWeeklyPlaylist.id,
-      tracksUris,
-      accessToken,
-      res
-    );
-    if (result === null) return;
-
-    // create a new user
-    const userData = {
-      spotifyId: spotifyUser.id as string,
-      refreshToken: token.refresh_token as string,
-      lastUpdate: new Date(),
-      discoverWeeklyPlaylistId: discoverWeekly.id as string,
-      spotifyWeeklyPlaylistId: spotifyWeeklyPlaylist.id as string,
-    };
-
+    // in case the user has returned, let's update the hasAccess flag
     try {
-      await prisma.users.create({
-        data: userData,
+      await prisma.users.update({
+        where: {
+          id: user.id,
+        },
+        data: {
+          hasAccess: true,
+        },
       });
     } catch (err) {
-      return respondError(400, "Error creating user", res);
+      return respondError(400, "Error updating hasAccess flag", res);
     }
 
     return res.status(200).json({
-      message:
-        "Setup is done. You will get your Spotify Weekly updates every Monday at 9:00 PM UTC (GTM+0). Check your Spotify Weekly playlist!",
+      message: `Welcome back, ${spotifyUser.display_name}!`,
+      spotifyWeeklyPlaylistId: user.spotifyWeeklyPlaylistId!,
     });
   }
 
-  res.status(404).json({ error: "Not found" });
+  // new user
+
+  // find the "discover weekly" playlist
+  let findResults = await findDiscoveryWeeklyPlaylist(
+    "https://api.spotify.com/v1/me/playlists",
+    {
+      offset: 0,
+      limit: 50,
+    },
+    accessToken,
+    res
+  );
+  if (findResults === null) return;
+  let { discoverWeekly, next } = findResults;
+
+  // repeat until find Discover Weekly or the end of the playlists list
+  while (discoverWeekly === undefined || next != null) {
+    findResults = await findDiscoveryWeeklyPlaylist(next, {}, accessToken, res);
+    if (findResults === null) return;
+    discoverWeekly = findResults.discoverWeekly;
+    next = findResults.next;
+  }
+
+  // if there ir no Discover Weekly playlist, then we could find it from Search endpoint
+  if (discoverWeekly === undefined) {
+    discoverWeekly = await findDiscoveryWeeklyPlaylistFromSearch(
+      accessToken,
+      res
+    );
+    if (discoverWeekly === null) return;
+  }
+
+  // can't find Discover Weekly playlist
+  if (discoverWeekly === undefined) {
+    return respondError(400, "Can't find Discover Weekly playlist", res);
+  }
+
+  // get the list of tracks from Discover Weekly
+  const tracksUris = await getListOfTracksFromDiscoverWeekly(
+    discoverWeekly.id,
+    accessToken,
+    res
+  );
+  if (tracksUris === null) return;
+
+  // create Spotify Weekly playlist
+  const spotifyWeeklyPlaylist = await createSpotifyWeeklyPlaylist(
+    spotifyUser.id,
+    accessToken,
+    res
+  );
+  if (spotifyWeeklyPlaylist === null) return;
+
+  // put the tracks from Discover Weekly to a new create Sporify Weekly playlist
+  const result = await addTracksToThePlaylist(
+    spotifyWeeklyPlaylist.id,
+    tracksUris,
+    accessToken,
+    res
+  );
+  if (result === null) return;
+
+  // create a new user
+  const userData = {
+    spotifyId: spotifyUser.id as string,
+    refreshToken: token.refresh_token as string,
+    lastUpdate: new Date(),
+    discoverWeeklyPlaylistId: discoverWeekly.id as string,
+    spotifyWeeklyPlaylistId: spotifyWeeklyPlaylist.id as string,
+  };
+
+  try {
+    await prisma.users.create({
+      data: userData,
+    });
+  } catch (err) {
+    return respondError(400, "Error creating user", res);
+  }
+
+  return res.status(200).json({
+    message:
+      "Setup is done. You will get your Spotify Weekly updates every Monday at 9:00 PM UTC (GTM+0). Check your Spotify Weekly playlist!",
+  });
 };
 
 export default handler;

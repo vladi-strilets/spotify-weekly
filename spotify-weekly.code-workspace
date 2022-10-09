@@ -4,10 +4,7 @@
       "path": "."
     },
     {
-      "path": "./client"
-    },
-    {
-      "path": "./spotify-weekly-nextjs"
+      "path": "./deprecated"
     }
   ]
 }

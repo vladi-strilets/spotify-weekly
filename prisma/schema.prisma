@@ -9,10 +9,10 @@ datasource db {
 
 model users {
   id                       String   @id @default(auto()) @map("_id") @db.ObjectId
-  discoverWeeklyPlaylistId String?  @unique(map: "discoverWeeklyPlaylistId_1")
+  discoverWeeklyPlaylistId String?
   hasAccess                Boolean  @default(true)
   lastUpdate               DateTime @db.Date
   refreshToken             String
   spotifyId                String   @unique(map: "spotifyId_1")
-  spotifyWeeklyPlaylistId  String?  @unique(map: "spotifyWeeklyPlaylistId_1")
+  spotifyWeeklyPlaylistId  String?
 }

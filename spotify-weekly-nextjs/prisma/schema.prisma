@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id                       String   @id @default(auto()) @map("_id") @db.ObjectId
+  discoverWeeklyPlaylistId String?  @unique(map: "discoverWeeklyPlaylistId_1")
+  hasAccess                Boolean  @default(true)
+  lastUpdate               DateTime @db.Date
+  refreshToken             String
+  spotifyId                String   @unique(map: "spotifyId_1")
+  spotifyWeeklyPlaylistId  String?  @unique(map: "spotifyWeeklyPlaylistId_1")
+}

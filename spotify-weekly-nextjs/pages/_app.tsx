@@ -1,4 +1,3 @@
-import "../styles/normalize.css";
 import "../styles/app.css";
 import { NextAdapter } from "next-query-params";
 import type { AppProps } from "next/app";

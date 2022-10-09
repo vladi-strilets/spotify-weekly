@@ -158,7 +158,7 @@ const HomePage = ({}) => {
 					)}
 					{error && (
 						<Message>
-							<p style={{ color: "red" }}>>{error}</p>
+							<p style={{ color: "red" }}>{error}</p>
 						</Message>
 					)}
 

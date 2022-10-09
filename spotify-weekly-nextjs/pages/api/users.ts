@@ -8,6 +8,7 @@ import { differenceInSeconds } from "date-fns";
 type Data =
   | {
       message?: string;
+      spotifyWeeklyPlaylistId?: string;
     }
   | {
       error?: string;
@@ -333,7 +334,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
       }
 
       return res.status(200).json({
-        message: "Welcome back!",
+        message: `Welcome back, ${spotifyUser.display_name}!`,
+        spotifyWeeklyPlaylistId: user.spotifyWeeklyPlaylistId!,
       });
     }
 

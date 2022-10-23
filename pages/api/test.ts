@@ -7,6 +7,12 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     return;
   }
 
+  // check the secret key
+  if (req.headers.authorization !== `Bearer ${process.env.API_SECRET_KEY}`) {
+    res.status(401).json({ error: "Wrong secret" });
+    return;
+  }
+
   if (req.body.count !== 3) {
     res.status(429).json({ message: "Too many requests" });
     return;

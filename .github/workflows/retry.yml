@@ -1,0 +1,19 @@
+name: update-list
+on:
+  schedule:
+    - cron: "*/10 * * * *"
+jobs:
+  call-update-list:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call update list endpoint
+        uses: nick-invision/retry@v2
+        with:
+          timeout_seconds: 10
+          max_attempts: 3
+          retry_on: error
+          shell: cmd
+          command: |
+            curl --request POST \
+            --url 'https://spotify-weekly.vercel.app/api/test' \
+            --header 'Authorization: Bearer ${{ secrets.API_SECRET_KEY }}'

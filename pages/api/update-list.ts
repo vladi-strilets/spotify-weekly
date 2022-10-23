@@ -92,6 +92,9 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
   );
 
   if (usersIdsHasAccessFalse.length > 0) {
+    console.log(
+      `set 'hasAccess: false' to ${usersIdsHasAccessFalse.length} users from usersIdsHasAccessFalse`
+    );
     await prisma.users.updateMany({
       where: {
         id: {

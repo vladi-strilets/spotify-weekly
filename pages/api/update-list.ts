@@ -202,7 +202,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
         Authorization: `Bearer ${accessToken}`,
       },
       data: {
-        uris: tracksUris.slice(0, 1),
+        uris: tracksUris,
         position: 0,
       },
     });

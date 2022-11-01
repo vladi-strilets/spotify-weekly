@@ -1,4 +1,4 @@
-name: daily-cron
+name: update-list
 on:
   schedule:
     - cron: "10,20,30,40,50 0-23 * * TUE"
@@ -6,7 +6,7 @@ jobs:
   cron:
     runs-on: ubuntu-latest
     steps:
-      - name: Call test endpoint
+      - name: Call update list endpoint
         run: |
           curl --request POST \
           --url 'https://spotify-weekly.vercel.app/api/update-list' \

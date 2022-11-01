@@ -1,7 +1,7 @@
 name: daily-cron
 on:
   schedule:
-    - cron: "0 * * * *"
+    - cron: "10,20,30,40,50 0-23 * * TUE"
 jobs:
   cron:
     runs-on: ubuntu-latest
@@ -9,5 +9,5 @@ jobs:
       - name: Call test endpoint
         run: |
           curl --request POST \
-          --url 'https://spotify-weekly.vercel.app/api/test' \
+          --url 'https://spotify-weekly.vercel.app/api/update-list' \
           --header 'Authorization: Bearer ${{ secrets.API_SECRET_KEY }}'

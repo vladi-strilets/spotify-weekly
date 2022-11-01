@@ -29,7 +29,7 @@ export default function Document() {
           property="og:description"
           content="Automatically save your Discover Weekly songs from Spotify into a private playlist called Spotify Weekly every Tuesday."
         />
-        <meta property="og:image" content="/headphone.jpg" />
+        <meta property="og:image" content="%PUBLIC_URL%/headphone.jpg" />
 
         {/* <!-- Twitter --> */}
         <meta property="twitter:card" content="summary_large_image" />
@@ -45,7 +45,7 @@ export default function Document() {
           property="twitter:description"
           content="Automatically save your Discover Weekly songs from Spotify into a private playlist called Spotify Weekly every Tuesday."
         />
-        <meta property="twitter:image" content="/headphone.jpg" />
+        <meta property="twitter:image" content="%PUBLIC_URL%/headphone.jpg" />
       </Head>
       <body>
         <Main />

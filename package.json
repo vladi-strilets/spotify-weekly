@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prisma:generate": "prisma generate",
+    "prisma:generate": "prisma generate --data-proxy",
     "dev": "next dev",
     "build": "next build",
     "start": "pnpm prisma:generate && next start",

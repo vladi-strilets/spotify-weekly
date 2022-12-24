@@ -13,6 +13,7 @@ import GithubIcon from "../assets/icons/github.png";
 
 import clsx from "clsx";
 import Confetti from "../components/Confetti";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 
 type HomeProps = {
   totalCount: number;
@@ -38,7 +39,7 @@ const Home: NextPage<HomeProps> = (props) => {
 
   const [code, setCode] = useQueryParam("code", StringParam);
   const { data, error, trigger, isMutating } = useSWRMutation(
-    "/api/users",
+    process.env.USERS_EDGE_FN_URL!,
     createUserFetcher,
     { throwOnError: false }
   );
@@ -97,7 +98,13 @@ const Home: NextPage<HomeProps> = (props) => {
           )}
           href={loginUrl}
         >
-          {isMutating ? "CONNECTING WITH SPOTIFY..." : "CONNECT WITH SPOTIFY"}
+          {isMutating ? (
+            <div>
+              <LoadingSpinner /> {"CONNECTING WITH SPOTIFY..."}
+            </div>
+          ) : (
+            "CONNECT WITH SPOTIFY"
+          )}
         </a>
 
         {(error != null || data != null) && (

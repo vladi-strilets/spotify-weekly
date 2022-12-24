@@ -1,7 +1,7 @@
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["deno"]
-  output          = "../generated/client"
+  output          = "../supabase/functions/generated/client"
 }
 
 datasource db {

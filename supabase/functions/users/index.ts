@@ -5,8 +5,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { difference } from "https://deno.land/std@0.168.0/datetime/mod.ts";
 
-import { PrismaClient, users } from "../../../generated/client/deno/edge.ts";
-import { WEEK_IN_SECONDS } from "../../../lib/const.ts";
+import { corsHeaders } from "../shared/cors.ts";
+import { PrismaClient } from "../generated/client/deno/edge.ts";
+import type { users } from "../generated/client/deno/edge.ts";
+import { WEEK_IN_SECONDS } from "../shared/const.ts";
 
 type SuccessData = {
   message: string;
@@ -53,6 +55,10 @@ const getSpotifyToken = async (code: string) => {
     },
   });
 
+  if (!response.ok) {
+    throw new Error();
+  }
+
   const data = await response.json();
 
   return data;
@@ -64,6 +70,10 @@ const getSpotifyUser = async (accessToken: string) => {
       Authorization: `Bearer ${accessToken}`,
     },
   });
+
+  if (!response.ok) {
+    throw new Error();
+  }
 
   const data = await response.json();
 
@@ -83,6 +93,10 @@ const getListOfTracks = async (
     }
   );
 
+  if (!response.ok) {
+    throw new Error();
+  }
+
   const data = await response.json();
 
   const tracks = getTrackUrisFromList(data.items);
@@ -95,17 +109,24 @@ const addTracksToThePlaylist = async (
   tracksUris: string[],
   accessToken: string
 ) => {
-  await fetch(`https://api.spotify.com/v1/playlists/${playlistId}/tracks`, {
-    method: "POST",
-    body: JSON.stringify({
-      uris: tracksUris,
-      position: 0,
-    }),
-    headers: {
-      Authorization: `Bearer ${accessToken}`,
-      "Content-Type": "application/json",
-    },
-  });
+  const response = await fetch(
+    `https://api.spotify.com/v1/playlists/${playlistId}/tracks`,
+    {
+      method: "POST",
+      body: JSON.stringify({
+        uris: tracksUris,
+        position: 0,
+      }),
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error();
+  }
 };
 
 const updatePlaylistForExistingUser = async (
@@ -178,6 +199,10 @@ const fetchDiscoverWeeklyPlaylist = async (
     },
   });
 
+  if (!response.ok) {
+    throw new Error();
+  }
+
   const data = await response.json();
 
   return data;
@@ -204,6 +229,10 @@ const findDiscoveryWeeklyPlaylistFromSearch = async (accessToken: string) => {
       },
     }
   );
+
+  if (!response.ok) {
+    throw new Error();
+  }
 
   const data = await response.json();
 
@@ -253,6 +282,10 @@ const getListOfTracksFromPlaylist = async (
     }
   );
 
+  if (!response.ok) {
+    throw new Error();
+  }
+
   const data = await response.json();
 
   const tracks = getTrackUrisFromList(data.items);
@@ -279,6 +312,10 @@ const createSpotifyWeeklyPlaylist = async (
       },
     }
   );
+
+  if (!response.ok) {
+    throw new Error();
+  }
 
   const data = await response.json();
 
@@ -314,6 +351,11 @@ const addTracksFromDiscoverWeeklyToSpotifyWeekly = async (
 };
 
 serve(async (req) => {
+  // This is needed if you're planning to invoke your function from a browser.
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders });
+  }
+
   if (req.method !== "POST") {
     return new Response("Method Not Allowed", {
       status: 405,

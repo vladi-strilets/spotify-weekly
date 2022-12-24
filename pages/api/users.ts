@@ -6,15 +6,17 @@ import prisma from "../../lib/prisma";
 import { differenceInSeconds } from "date-fns";
 import { WEEK_IN_SECONDS } from "../../lib/const";
 
-type Data =
-  | {
-      message?: string;
-      spotifyWeeklyPlaylistId?: string;
-    }
-  | {
-      error?: string;
-      errorDescription?: string;
-    };
+type SuccessData = {
+  message: string;
+  spotifyWeeklyPlaylistId: string;
+};
+
+type ErrorData = {
+  error: string;
+  errorDescription?: string;
+};
+
+type ResponseData = SuccessData | ErrorData;
 
 const catchError = (error: unknown) => {
   if (axios.isAxiosError(error)) {
@@ -30,7 +32,10 @@ const catchError = (error: unknown) => {
   };
 };
 
-const catctErrorAndRespond = (err: unknown, res: NextApiResponse<Data>) => {
+const catctErrorAndRespond = (
+  err: unknown,
+  res: NextApiResponse<ResponseData>
+) => {
   const { status, error, errorDescription } = catchError(err);
   res.status(status).json({ error, errorDescription });
 };
@@ -38,7 +43,7 @@ const catctErrorAndRespond = (err: unknown, res: NextApiResponse<Data>) => {
 const respondError = (
   status: number,
   message: string,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ResponseData>
 ) => {
   res.status(status).json({ error: message });
 };
@@ -46,7 +51,7 @@ const respondError = (
 const getSpotifyToken = async (
   code: string,
   req: NextApiRequest,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ResponseData>
 ) => {
   const { origin } = absoluteUrl(req);
   const host = new URL(origin).href;
@@ -78,7 +83,7 @@ const getSpotifyToken = async (
 
 const getSpotifyUser = async (
   accessToken: string,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ResponseData>
 ) => {
   try {
     const response = await axios({
@@ -102,7 +107,7 @@ const getTrackUrisFromList = (tracks: any[]) =>
 const getListOfTracks = async (
   discoverWeeklyPlaylistId: string,
   accessToken: string,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ResponseData>
 ) => {
   try {
     const response = await axios({
@@ -124,7 +129,7 @@ const addTracksToThePlaylist = async (
   spotifyWeeklyPlaylistId: string,
   tracksUris: string[],
   accessToken: string,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ResponseData>
 ) => {
   try {
     await axios({
@@ -156,7 +161,7 @@ const findDiscoveryWeeklyPlaylist = async (
   url: string,
   params: object,
   accessToken: string,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ResponseData>
 ) => {
   try {
     const response = await axios({
@@ -180,7 +185,7 @@ const findDiscoveryWeeklyPlaylist = async (
 
 const findDiscoveryWeeklyPlaylistFromSearch = async (
   accessToken: string,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ResponseData>
 ) => {
   try {
     const response = await axios({
@@ -204,7 +209,7 @@ const findDiscoveryWeeklyPlaylistFromSearch = async (
 const getListOfTracksFromDiscoverWeekly = async (
   discoverWeeklyId: string,
   accessToken: string,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ResponseData>
 ) => {
   try {
     const response = await axios({
@@ -225,7 +230,7 @@ const getListOfTracksFromDiscoverWeekly = async (
 const createSpotifyWeeklyPlaylist = async (
   spotifyUserId: string,
   accessToken: string,
-  res: NextApiResponse<Data>
+  res: NextApiResponse<ResponseData>
 ) => {
   try {
     const response = await axios({
@@ -248,7 +253,10 @@ const createSpotifyWeeklyPlaylist = async (
   }
 };
 
-const handler = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
+const handler = async (
+  req: NextApiRequest,
+  res: NextApiResponse<ResponseData>
+) => {
   if (req.method !== "POST") {
     res.setHeader("Allow", "POST");
     res.status(405).end("Method Not Allowed");
@@ -424,7 +432,8 @@ const handler = async (req: NextApiRequest, res: NextApiResponse<Data>) => {
 
   return res.status(200).json({
     message:
-      "Setup is done. You will get your Spotify Weekly updates every Monday at 9:00 PM UTC (GTM+0). Check your Spotify Weekly playlist!",
+      "Setup is done. You will get your Spotify Weekly updates every Tuesday. Check your Spotify Weekly playlist!",
+    spotifyWeeklyPlaylistId: spotifyWeeklyPlaylist.id,
   });
 };
 

@@ -1,0 +1,20 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["deno"]
+  output          = "../generated/client"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model users {
+  id                       String   @id @default(auto()) @map("_id") @db.ObjectId
+  discoverWeeklyPlaylistId String?
+  hasAccess                Boolean  @default(true)
+  lastUpdate               DateTime @db.Date
+  refreshToken             String
+  spotifyId                String   @unique(map: "spotifyId_1")
+  spotifyWeeklyPlaylistId  String?
+}

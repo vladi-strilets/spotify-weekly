@@ -6,5 +6,11 @@
     {
       "path": "./deprecated"
     }
-  ]
+  ],
+  "settings": {
+    "deno.enable": true,
+    "deno.unstable": true,
+    "deno.lint": true,
+    "deno.enablePaths": ["./supabase/functions"]
+  }
 }

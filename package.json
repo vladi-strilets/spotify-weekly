@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "prisma:generate": "prisma generate --data-proxy",
+    "prisma:generate": "prisma generate",
+    "prisma:generate:deno": "prisma generate --data-proxy --schema=./prisma/deno.schema.prisma",
     "dev": "next dev",
     "build": "next build",
     "start": "pnpm prisma:generate && next start",

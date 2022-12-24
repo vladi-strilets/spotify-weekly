@@ -7,9 +7,9 @@ import { difference } from "https://deno.land/std@0.168.0/datetime/mod.ts";
 import { encode } from "https://deno.land/std@0.170.0/encoding/base64.ts";
 
 import { corsHeaders } from "../shared/cors.ts";
+import { WEEK_IN_SECONDS } from "../shared/const.ts";
 import { PrismaClient } from "../generated/client/deno/edge.ts";
 import type { users } from "../generated/client/deno/edge.ts";
-import { WEEK_IN_SECONDS } from "../shared/const.ts";
 
 type SuccessData = {
   message: string;
@@ -357,8 +357,6 @@ const addTracksFromDiscoverWeeklyToSpotifyWeekly = async (
 
   return spotifyWeeklyPlaylist;
 };
-
-
 
 serve(async (req) => {
   // This is needed if you're planning to invoke your function from a browser.

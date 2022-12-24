@@ -85,8 +85,8 @@ const Home: NextPage<HomeProps> = (props) => {
           <h2 className="text-2xl font-medium ">How it works?</h2>
           <p>
             By clicking on the button below, your tracks from Discover Weekly
-            will be added to a new playlist called Spotify Weekly each Monday at
-            9:00 PM UTC (GMT +0).
+            will be added to a new playlist called &quot;Spotify Weekly&quot;
+            each Tuesday.
           </p>
         </div>
 

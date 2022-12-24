@@ -13,6 +13,7 @@ import GithubIcon from "../assets/icons/github.png";
 
 import clsx from "clsx";
 import Confetti from "../components/Confetti";
+import { LoadingSpinner } from "../components/LoadingSpinner";
 
 type HomeProps = {
   totalCount: number;
@@ -28,6 +29,9 @@ const createUserFetcher = async (
     data: {
       code: arg.code,
     },
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_EDGE_FN_ANON_KEY!}`,
+    },
   });
 
   return response.data;
@@ -38,7 +42,7 @@ const Home: NextPage<HomeProps> = (props) => {
 
   const [code, setCode] = useQueryParam("code", StringParam);
   const { data, error, trigger, isMutating } = useSWRMutation(
-    "/api/users",
+    `${process.env.NEXT_PUBLIC_EDGE_FN_BASE!}/users`,
     createUserFetcher,
     { throwOnError: false }
   );
@@ -81,8 +85,8 @@ const Home: NextPage<HomeProps> = (props) => {
           <h2 className="text-2xl font-medium ">How it works?</h2>
           <p>
             By clicking on the button below, your tracks from Discover Weekly
-            will be added to a new playlist called Spotify Weekly each Monday at
-            9:00 PM UTC (GMT +0).
+            will be added to a new playlist called &quot;Spotify Weekly&quot;
+            each Tuesday.
           </p>
         </div>
 
@@ -92,12 +96,21 @@ const Home: NextPage<HomeProps> = (props) => {
 
         <a
           className={clsx(
-            "mx-auto py-5 px-6 bg-spotify-green font-semibold no-underline rounded-full",
+            "mx-auto py-5 px-6 bg-spotify-green font-semibold no-underline rounded-full ",
             isMutating && "pointer-events-none"
           )}
           href={loginUrl}
         >
-          {isMutating ? "CONNECTING WITH SPOTIFY..." : "CONNECT WITH SPOTIFY"}
+          <span className="h-6 flex gap-2 items-center justify-center ">
+            {isMutating ? (
+              <>
+                <LoadingSpinner />
+                {"CONNECTING WITH SPOTIFY..."}
+              </>
+            ) : (
+              "CONNECT WITH SPOTIFY"
+            )}
+          </span>
         </a>
 
         {(error != null || data != null) && (

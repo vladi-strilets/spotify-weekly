@@ -29,6 +29,9 @@ const createUserFetcher = async (
     data: {
       code: arg.code,
     },
+    headers: {
+      Authorization: `Bearer ${process.env.NEXT_PUBLIC_EDGE_FN_ANON_KEY!}`,
+    },
   });
 
   return response.data;
@@ -39,7 +42,7 @@ const Home: NextPage<HomeProps> = (props) => {
 
   const [code, setCode] = useQueryParam("code", StringParam);
   const { data, error, trigger, isMutating } = useSWRMutation(
-    process.env.USERS_EDGE_FN_URL!,
+    `${process.env.NEXT_PUBLIC_EDGE_FN_BASE!}/users`,
     createUserFetcher,
     { throwOnError: false }
   );
@@ -93,18 +96,21 @@ const Home: NextPage<HomeProps> = (props) => {
 
         <a
           className={clsx(
-            "mx-auto py-5 px-6 bg-spotify-green font-semibold no-underline rounded-full",
+            "mx-auto py-5 px-6 bg-spotify-green font-semibold no-underline rounded-full ",
             isMutating && "pointer-events-none"
           )}
           href={loginUrl}
         >
-          {isMutating ? (
-            <div>
-              <LoadingSpinner /> {"CONNECTING WITH SPOTIFY..."}
-            </div>
-          ) : (
-            "CONNECT WITH SPOTIFY"
-          )}
+          <span className="h-6 flex gap-2 items-center justify-center ">
+            {isMutating ? (
+              <>
+                <LoadingSpinner />
+                {"CONNECTING WITH SPOTIFY..."}
+              </>
+            ) : (
+              "CONNECT WITH SPOTIFY"
+            )}
+          </span>
         </a>
 
         {(error != null || data != null) && (

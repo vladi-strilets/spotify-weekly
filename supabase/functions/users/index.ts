@@ -4,6 +4,7 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { difference } from "https://deno.land/std@0.168.0/datetime/mod.ts";
+import { encode } from "https://deno.land/std@0.170.0/encoding/base64.ts";
 
 import { corsHeaders } from "../shared/cors.ts";
 import { PrismaClient } from "../generated/client/deno/edge.ts";
@@ -22,7 +23,7 @@ const responseWithError = (error: string, status = 400) => {
 
   return new Response(body, {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...corsHeaders },
   });
 };
 
@@ -31,7 +32,7 @@ const responseWithSuccess = (data: SuccessData) => {
 
   return new Response(body, {
     status: 200,
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...corsHeaders },
   });
 };
 
@@ -47,19 +48,26 @@ const getSpotifyToken = async (code: string) => {
     client_secret: Deno.env.get("SPOTIFY_SECRET")!,
   };
 
+  const authHeader = encode(
+    Deno.env.get("NEXT_PUBLIC_SPOTIFY_ID")! +
+      ":" +
+      Deno.env.get("SPOTIFY_SECRET")!
+  );
+
   const response = await fetch("https://accounts.spotify.com/api/token", {
     method: "POST",
     body: new URLSearchParams(requestBody),
     headers: {
+      Authorization: "Basic " + authHeader,
       "Content-Type": "application/x-www-form-urlencoded",
     },
   });
 
+  const data = await response.json();
+
   if (!response.ok) {
     throw new Error();
   }
-
-  const data = await response.json();
 
   return data;
 };
@@ -350,6 +358,11 @@ const addTracksFromDiscoverWeeklyToSpotifyWeekly = async (
   return spotifyWeeklyPlaylist;
 };
 
+const sleep = (seconds: number) => {
+  const ms = seconds * 1000;
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
+
 serve(async (req) => {
   // This is needed if you're planning to invoke your function from a browser.
   if (req.method === "OPTIONS") {
@@ -359,9 +372,11 @@ serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method Not Allowed", {
       status: 405,
-      headers: { Allow: "POST" },
+      headers: { Allow: "POST", ...corsHeaders },
     });
   }
+
+  await sleep(15);
 
   const { code } = await req.json();
 

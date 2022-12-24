@@ -358,10 +358,7 @@ const addTracksFromDiscoverWeeklyToSpotifyWeekly = async (
   return spotifyWeeklyPlaylist;
 };
 
-const sleep = (seconds: number) => {
-  const ms = seconds * 1000;
-  return new Promise((resolve) => setTimeout(resolve, ms));
-};
+
 
 serve(async (req) => {
   // This is needed if you're planning to invoke your function from a browser.
@@ -375,8 +372,6 @@ serve(async (req) => {
       headers: { Allow: "POST", ...corsHeaders },
     });
   }
-
-  await sleep(15);
 
   const { code } = await req.json();
 

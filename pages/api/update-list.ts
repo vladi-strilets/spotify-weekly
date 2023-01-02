@@ -38,7 +38,6 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       },
       // spotifyId: "11137035373",
     },
-    take: 25,
   });
 
   // if there is no users just return

@@ -218,13 +218,17 @@ const updatePlaylistForExistingUser = async (
   }
 };
 
-const updateUserDataAfterFreshLogin = async (user: users) => {
+const updateUserDataAfterFreshLogin = async (
+  user: users,
+  refreshToken: string
+) => {
   await prisma.users.update({
     where: {
       id: user.id,
     },
     data: {
       hasAccess: true,
+      refreshToken,
     },
   });
 };
@@ -422,8 +426,6 @@ serve(async (req) => {
     return responseWithError("Error getting token from Spotify");
   }
 
-  console.log("token", token);
-
   const accessToken = token.access_token;
 
   // get spotify user data
@@ -460,7 +462,7 @@ serve(async (req) => {
     // in case the user has returned, let's update the hasAccess flag
     if (!user.hasAccess) {
       try {
-        await updateUserDataAfterFreshLogin(user);
+        await updateUserDataAfterFreshLogin(user, token.refresh_token);
       } catch (error) {
         console.log(error);
         return responseWithError("Error updating user data after fresh login");

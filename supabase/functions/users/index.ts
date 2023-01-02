@@ -422,6 +422,8 @@ serve(async (req) => {
     return responseWithError("Error getting token from Spotify");
   }
 
+  console.log("token", token);
+
   const accessToken = token.access_token;
 
   // get spotify user data

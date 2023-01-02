@@ -38,6 +38,7 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       },
       // spotifyId: "11137035373",
     },
+    take: 25,
   });
 
   // if there is no users just return
@@ -80,12 +81,15 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
       (result) => result.status === "rejected"
     );
 
-  console.log(
-    "rejectedGetAccessTokenResultsWithUsers",
-    rejectedGetAccessTokenResultsWithUsers.map(
-      (result) => result.reason?.response?.data
-    )
-  );
+  if (rejectedGetAccessTokenResultsWithUsers.length > 0) {
+    console.error(
+      "rejectedGetAccessTokenResultsWithUsers",
+      rejectedGetAccessTokenResultsWithUsers.map((result) => ({
+        ...(result.reason?.response?.data as object),
+        userId: result.user.id,
+      }))
+    );
+  }
 
   const usersIdsHasAccessFalse = rejectedGetAccessTokenResultsWithUsers.map(
     (result) => result.user.id
@@ -149,12 +153,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     (result) => result.status === "rejected"
   );
 
-  console.log(
-    "failedGetTracksResultsWithUsers",
-    failedGetTracksResultsWithUsers.map(
-      (result) => result.reason?.response?.data
-    )
-  );
+  if (failedGetTracksResultsWithUsers.length > 0) {
+    console.error(
+      "failedGetTracksResultsWithUsers",
+      failedGetTracksResultsWithUsers.map(
+        (result) => result.reason?.response?.data
+      )
+    );
+  }
 
   // remove users who doesn't have discover weekly playlist anymore
   const removeDiscoverWeeklyPlaylistUserIds = failedGetTracksResultsWithUsers
@@ -223,12 +229,14 @@ const handler = async (req: NextApiRequest, res: NextApiResponse) => {
     (result) => result.status === "rejected"
   );
 
-  console.log(
-    "failedAddTracksResultsWithUsers",
-    failedAddTracksResultsWithUsers.map(
-      (result) => result.reason?.response?.data
-    )
-  );
+  if (failedAddTracksResultsWithUsers.length > 0) {
+    console.error(
+      "failedAddTracksResultsWithUsers",
+      failedAddTracksResultsWithUsers.map(
+        (result) => result.reason?.response?.data
+      )
+    );
+  }
 
   // remove users who doesn't have spotify weekly playlist anymore
   const removeSpotifyWeeklyPlaylistUserIds = failedAddTracksResultsWithUsers

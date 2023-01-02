@@ -1,0 +1,13 @@
+name: mantain-alive-supabase
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+jobs:
+  cron:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call mantain-alive supabase edge function
+        run: |
+          curl --request POST \
+          --url 'https://rcbzyzfpbnzlcbrhwukh.functions.supabase.co/mantain-alive' \
+          --header 'Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}'

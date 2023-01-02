@@ -5,11 +5,40 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { difference } from "https://deno.land/std@0.168.0/datetime/mod.ts";
 import { encode } from "https://deno.land/std@0.170.0/encoding/base64.ts";
+import * as log from "https://deno.land/std@0.168.0/log/mod.ts";
 
 import { corsHeaders } from "../shared/cors.ts";
 import { WEEK_IN_SECONDS } from "../shared/const.ts";
 import { PrismaClient } from "../generated/client/deno/edge.ts";
 import type { users } from "../generated/client/deno/edge.ts";
+import type { LevelName } from "https://deno.land/std@0.168.0/log/levels.ts";
+
+await log.setup({
+  handlers: {
+    console: new log.handlers.ConsoleHandler(
+      (Deno.env.get("LOG_LEVEL") as LevelName) || "INFO",
+      {
+        formatter: (logRecord) => {
+          let msg = `${logRecord.levelName} ${logRecord.msg}`;
+
+          if (logRecord.args.length !== 0) {
+            logRecord.args.forEach((arg) => {
+              msg = `${msg} | ${JSON.stringify(arg)}`;
+            });
+          }
+
+          return msg;
+        },
+      }
+    ),
+  },
+  loggers: {
+    default: {
+      level: (Deno.env.get("LOG_LEVEL") as LevelName) || "INFO",
+      handlers: ["console"],
+    },
+  },
+});
 
 type SuccessData = {
   message: string;
@@ -147,7 +176,13 @@ const updatePlaylistForExistingUser = async (
     units: ["seconds"],
   });
 
-  if (lastUpdate == null || secondsFromLastUpdate > WEEK_IN_SECONDS) {
+  if (
+    lastUpdate == null ||
+    secondsFromLastUpdate?.seconds == null ||
+    secondsFromLastUpdate.seconds > WEEK_IN_SECONDS
+  ) {
+    log.info(`Updating playlist for existing user ${user.id}`);
+
     const { discoverWeeklyPlaylistId, spotifyWeeklyPlaylistId } = user;
 
     if (discoverWeeklyPlaylistId == null) {
@@ -486,7 +521,7 @@ serve(async (req) => {
 
   return responseWithSuccess({
     message:
-      "Setup is done. You will get your Spotify Weekly updates every Tuesday. Check your Spotify Weekly playlist!",
+      "Setup is done. You will get your Spotify Weekly updates every 7 days starting from now. Check your Spotify Weekly playlist!",
     spotifyWeeklyPlaylistId: spotifyWeeklyPlaylist.id,
   });
 });

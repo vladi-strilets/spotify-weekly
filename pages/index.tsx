@@ -86,7 +86,7 @@ const Home: NextPage<HomeProps> = (props) => {
           <p>
             By clicking on the button below, your tracks from Discover Weekly
             will be added to a new playlist called &quot;Spotify Weekly&quot;
-            each Tuesday.
+            each week.
           </p>
         </div>
 

@@ -1,7 +1,7 @@
 name: update-list
 on:
   schedule:
-    - cron: "10,20,30,40,50 0-23 * * TUE"
+    - cron: "*/30 * * * *"
 jobs:
   cron:
     runs-on: ubuntu-latest

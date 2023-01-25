@@ -1,7 +1,7 @@
 name: mantain-alive-supabase
 on:
   schedule:
-    - cron: "0 0 */3 * *"
+    - cron: "0 8 * * *"
 jobs:
   cron:
     runs-on: ubuntu-latest

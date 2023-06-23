@@ -1,7 +1,7 @@
 # [Spotify-weekly](https://spotify-weekly.vercel.app/)
 
 Automatically save your "Discover Weekly" songs from Spotify into a private playlist
-called "Spotify Weekly" every Tuesday.
+called "Spotify Weekly" every week.
 
 Site: [https://spotify-weekly.vercel.app/](https://spotify-weekly.vercel.app/)
 
